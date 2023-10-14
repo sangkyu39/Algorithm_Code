@@ -11,11 +11,13 @@ void downHeap(int idx, int last);
 void rBuildHeap(int idx);
 void buildHeap();
 
-int main() {
+int main()
+{
   scanf("%d", &n);
 
-  for (int i = 1; i <= n; i++) {
-      scanf("%d", &H[i]);
+  for (int i = 1; i <= n; i++)
+  {
+    scanf("%d", &H[i]);
   }
   inPlaceHeapSort();
   printArray();
@@ -23,51 +25,61 @@ int main() {
   return 0;
 }
 
-void swap(int *x, int *y) {
-	int tmp = *x;
-	*x = *y;
-	*y = tmp;
+void swap(int *x, int *y)
+{
+  int tmp = *x;
+  *x = *y;
+  *y = tmp;
 }
 
-
-void inPlaceHeapSort() {
+void inPlaceHeapSort()
+{
   rBuildHeap(1);
-  for (int i = n;i > 1;i--) {
+  for (int i = n; i > 1; i--)
+  {
     swap(&H[1], &H[i]);
     downHeap(1, i - 1);
   }
 }
 
-void rBuildHeap(int idx) {
-	if (idx > n) {
-		return;
-	}
-	rBuildHeap(2 * idx);
-	rBuildHeap(2 * idx + 1);
-	downHeap(idx, n);
+void rBuildHeap(int idx)
+{
+  if (idx > n)
+  {
+    return;
+  }
+  rBuildHeap(2 * idx);
+  rBuildHeap(2 * idx + 1);
+  downHeap(idx, n);
 }
 
-void downHeap(int idx, int last) {
+void downHeap(int idx, int last)
+{
   int left = idx * 2;
   int right = idx * 2 + 1;
 
-  if (left > last) {
+  if (left > last)
+  {
     return;
-  } 
+  }
   int biggerIdx = left;
 
-  if (right <= last) {
+  if (right <= last)
+  {
     biggerIdx = (H[right] > H[left]) ? right : left;
-  } 
+  }
 
-  if (H[biggerIdx] > H[idx]) {
+  if (H[biggerIdx] > H[idx])
+  {
     swap(&H[biggerIdx], &H[idx]);
     downHeap(biggerIdx, last);
   }
 }
 
-void printArray() {
-  for (int i = 1;i <= n;i++) {
+void printArray()
+{
+  for (int i = 1; i <= n; i++)
+  {
     printf(" %d", H[i]);
   }
-} 
+}
