@@ -127,7 +127,7 @@ void partition(List *list1, List *list2, List *list)
   init(list2, node->next, list->size - k);
   node->next = NULL;
 }
-
+/* list1,과 list2에 함수 내부에서 할당하는 경우 해당 함수의 주소로써 사용한 것이 아닌 변수로써 사용한 것임으로 오류 발생*/
 List *mergeSort(List *list)
 {
 
