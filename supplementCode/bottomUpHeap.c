@@ -87,9 +87,10 @@ void BuildHeap()
   }
 }
 
+// 힙에서 0번째 인덱스는 사용하지 않음 주의
 void printHeap()
 {
-  for (int i = 0; i < cnt; i++)
+  for (int i = 1; i <= cnt; i++)
     printf("%d ", H[i]);
   printf("\n");
 }
