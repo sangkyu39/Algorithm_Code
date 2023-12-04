@@ -1,211 +1,123 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-#define True 1
-#define False 0
-
-typedef struct __Node
+typedef struct __Bucket
 {
   int key;
-  struct __Node *parent, *leftChild, *rightChild;
-} Node;
+  struct __Bucket *next;
+} Bucket;
 
-Node *getNode();
-// 노드 상태 확인
-int isExternal(Node *node);
-int isInternal(Node *node);
+Bucket **bucketArr;
+int m;
 
-Node *treeSearch(Node *root, int key);
-void expandExternal(Node *node, int key);
-
-void insertItem(Node *root, int key);
-int findElement(Node *root, int key);
-
-int removeElement(Node **root, int key);
-void reduceExternal(Node **root, Node *child);
-Node *inOrderSucc(Node *node);
-
-// 출력
-void print(Node *root);
-void preOrder(Node *node);
-
+Bucket *getBucket(int key);
+void printElement();
+void insertItem(int key);
+int findElement(int key);
+int removeElement(int key);
 int main()
 {
-  Node *root = getNode(NULL);
-  char op;
   int key;
+  char cmd;
+  scanf("%d", &m);
+  getchar();
+
+  bucketArr = (Bucket **)calloc(m, sizeof(Bucket *));
 
   while (1)
   {
-    scanf("%c", &op);
-    if (op == 'q')
+    scanf("%c", &cmd);
+    if (cmd == 'e')
       break;
-    else if (op == 'p')
-      print(root);
+    else if (cmd == 'p')
+      printElement();
     else
     {
       scanf("%d", &key);
-
-      if (op == 's')
+      if (cmd == 'i')
       {
-        if (findElement(root, key) == key)
-          printf("%d\n", key);
-        else
-          printf("X\n");
+        insertItem(key);
       }
-      else if (op == 'd')
+      else if (cmd == 's')
       {
-        int element = removeElement(&root, key);
-        if (key == element)
-        {
-          printf("%d\n", key);
-        }
-        else
-          printf("X\n");
+        printf("%d\n", findElement(key));
       }
-      else if (op == 'i')
+      else if (cmd == 'd')
       {
-        insertItem(root, key);
+        printf("%d\n", removeElement(key));
       }
     }
-  }
-}
-
-Node *getNode(Node *parent)
-{
-  Node *node = (Node *)calloc(1, sizeof(Node));
-  node->parent = parent;
-  return node;
-}
-
-int isExternal(Node *node)
-{
-  return (node->leftChild == NULL && node->rightChild == NULL);
-}
-
-int isInternal(Node *node)
-{
-  return (node->leftChild || node->rightChild);
-}
-
-Node *treeSearch(Node *node, int key)
-{
-  if (isExternal(node))
-    return node;
-  if (key == node->key)
-    return node;
-  else if (key < node->key)
-    return treeSearch(node->leftChild, key);
-  else if (key > node->key)
-    return treeSearch(node->rightChild, key);
-}
-
-void insertItem(Node *root, int key)
-{
-  Node *node = treeSearch(root, key);
-  if (isInternal(node))
-    return;
-  expandExternal(node, key);
-}
-
-int findElement(Node *root, int key)
-{
-  Node *node = treeSearch(root, key);
-  if (isExternal(node))
-    return key - 1;
-  else
-    return node->key;
-}
-
-void expandExternal(Node *node, int key)
-{
-  node->key = key;
-  node->leftChild = getNode(node);
-  node->rightChild = getNode(node);
-}
-
-int removeElement(Node **root, int key)
-{
-  Node *node = treeSearch(*root, key);
-
-  if (isExternal(node))
-    return key - 1;
-
-  Node *child = node->leftChild;
-
-  if (isInternal(child))
-    child = node->rightChild;
-
-  if (isExternal(child))
-    reduceExternal(root, child);
-  else
-  {
-    Node *y = inOrderSucc(node);
-    child = y->leftChild;
-    node->key = y->key;
-    reduceExternal(root, child);
+    getchar();
   }
 
-  return key;
+  return 0;
 }
 
-Node *inOrderSucc(Node *node)
+Bucket *getBucket(int key)
 {
-  node = node->rightChild;
-  while (isInternal(node->leftChild))
+  Bucket *bucket = (Bucket *)calloc(1, sizeof(Bucket));
+  bucket->key = key;
+  return bucket;
+}
+
+int findElement(int key)
+{
+  int cnt = 1;
+  int v = key % m;
+  Bucket *bucket = bucketArr[v];
+  while (bucket)
   {
-    node = node->leftChild;
+    if (bucket->key == key)
+      return cnt;
+    bucket = bucket->next;
+    cnt++;
   }
-  return node;
+  return 0;
 }
 
-Node *sibling(Node *node)
+void insertItem(int key)
 {
-  if (node->parent == NULL)
-    return NULL;
-  if (node->parent->leftChild == node)
-    return node->parent->rightChild;
-  return node->parent->leftChild;
+  int v = key % m;
+  Bucket *bucket = getBucket(key);
+  bucket->next = bucketArr[v];
+  bucketArr[v] = bucket;
+  return;
 }
 
-void reduceExternal(Node **root, Node *child)
+int removeElement(int key)
 {
-  Node *parent = child->parent;
-  Node *siblingNode = sibling(child);
-  if (parent == (*root))
+  int v = key % m;
+  int cnt = 1;
+  Bucket *bucket = bucketArr[v];
+  Bucket *prev;
+  while (bucket)
   {
-    (*root) = siblingNode;
-    siblingNode->parent = NULL;
-  }
-  else
-  {
-    Node *node = parent->parent;
-    siblingNode->parent = node;
-    if (parent == node->leftChild)
+    if (bucket->key == key)
     {
-      node->leftChild = siblingNode;
+      if (cnt == 1)
+        bucketArr[v] = bucket->next;
+      else
+        prev->next = bucket->next;
+      return cnt;
     }
-    else
-    {
-      node->rightChild = siblingNode;
-    }
+    prev = bucket;
+    bucket = bucket->next;
+    cnt++;
   }
+  return 0;
 }
 
-void print(Node *root)
+void printElement()
 {
-  preOrder(root);
-  printf("\n");
-}
-
-void preOrder(Node *node)
-{
-  if (isExternal(node))
+  Bucket *bucket;
+  for (int i = 0; i < m; i++)
   {
-    return;
+    bucket = bucketArr[i];
+    while (bucket)
+    {
+      printf(" %d", bucket->key);
+      bucket = bucket->next;
+    }
   }
-  printf(" %d", node->key);
-  preOrder(node->leftChild);
-  preOrder(node->rightChild);
+  return;
 }

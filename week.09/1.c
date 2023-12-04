@@ -1,123 +1,136 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct __Bucket
+typedef struct __Edge
 {
-  int key;
-  struct __Bucket *next;
-} Bucket;
+  int number;
+  int weight;
+  struct __Edge *next;
+} Edge;
 
-Bucket **bucketArr;
-int m;
+typedef struct __Vertex
+{
+  Edge *edge;
+} Vertex;
 
-Bucket *getBucket(int key);
-void printElement();
-void insertItem(int key);
-int findElement(int key);
-int removeElement(int key);
+Vertex vertex[7];
+
+void addVertex(int number1, int number2, int weight);
+void insertEdge(int stand, int number, int weight);
+void initVertex();
+
+void print(int stand);
+void update(int number1, int number2, int weight);
+
+Edge *makeEdge(int number, int weight)
+{
+  Edge *edge = (Edge *)calloc(1, sizeof(Edge));
+  edge->number = number;
+  edge->weight = weight;
+  return edge;
+}
+
 int main()
 {
-  int key;
   char cmd;
-  scanf("%d", &m);
-  getchar();
+  int number, number1, number2, weight;
 
-  bucketArr = (Bucket **)calloc(m, sizeof(Bucket *));
+  initVertex();
 
   while (1)
   {
     scanf("%c", &cmd);
-    if (cmd == 'e')
+    if (cmd == 'a')
+    {
+      scanf("%d", &number);
+      print(number);
+    }
+    else if (cmd == 'm')
+    {
+      scanf("%d %d %d", &number, &number1, &number2);
+      updateVertex(number1, number2, weight);
+    }
+    else if (cmd == 'q')
+    {
       break;
-    else if (cmd == 'p')
-      printElement();
-    else
-    {
-      scanf("%d", &key);
-      if (cmd == 'i')
-      {
-        insertItem(key);
-      }
-      else if (cmd == 's')
-      {
-        printf("%d\n", findElement(key));
-      }
-      else if (cmd == 'd')
-      {
-        printf("%d\n", removeElement(key));
-      }
-    }
-    getchar();
-  }
-
-  return 0;
-}
-
-Bucket *getBucket(int key)
-{
-  Bucket *bucket = (Bucket *)calloc(1, sizeof(Bucket));
-  bucket->key = key;
-  return bucket;
-}
-
-int findElement(int key)
-{
-  int cnt = 1;
-  int v = key % m;
-  Bucket *bucket = bucketArr[v];
-  while (bucket)
-  {
-    if (bucket->key == key)
-      return cnt;
-    bucket = bucket->next;
-    cnt++;
-  }
-  return 0;
-}
-
-void insertItem(int key)
-{
-  int v = key % m;
-  Bucket *bucket = getBucket(key);
-  bucket->next = bucketArr[v];
-  bucketArr[v] = bucket;
-  return;
-}
-
-int removeElement(int key)
-{
-  int v = key % m;
-  int cnt = 1;
-  Bucket *bucket = bucketArr[v];
-  Bucket *prev;
-  while (bucket)
-  {
-    if (bucket->key == key)
-    {
-      if (cnt == 1)
-        bucketArr[v] = bucket->next;
-      else
-        prev->next = bucket->next;
-      return cnt;
-    }
-    prev = bucket;
-    bucket = bucket->next;
-    cnt++;
-  }
-  return 0;
-}
-
-void printElement()
-{
-  Bucket *bucket;
-  for (int i = 0; i < m; i++)
-  {
-    bucket = bucketArr[i];
-    while (bucket)
-    {
-      printf(" %d", bucket->key);
-      bucket = bucket->next;
     }
   }
-  return;
+}
+
+void print(int stand)
+{
+  Edge *edge = vertex[stand].edge;
+
+  while (edge)
+  {
+    printf(" %d %d", edge->number, edge->weight);
+    edge = edge->next;
+  }
+  printf("\n");
+}
+void insertEdge(int stand, int number, int weight)
+{
+  Edge *edge = makeEdge(number, weight);
+
+  Edge *next = vertex[stand].edge;
+
+  while (next != NULL)
+  {
+    if (next->number >= number || next->next == NULL)
+    {
+      edge->next = next->next;
+      next->next = edge;
+      return;
+    }
+    next = next->next;
+  }
+  edge->next = next;
+  vertex[stand].edge = edge;
+}
+
+void updateEdge(int stand, int number, int weight)
+{
+  Edge *next = vertex[stand].edge;
+
+  while (next->next != NULL)
+  {
+    if (next->next->number == number)
+      break;
+  }
+  if (next->number == number)
+  {
+    if (weight == 0)
+    {
+      next->next = next->next->next;
+    }
+    next->weight = weight;
+  }
+}
+
+void updateVertex(int number1, int number2, int weight)
+{
+  updateEdge(number1, number2, weight);
+  updateEdge(number2, number1, weight);
+}
+
+void addVertex(int number1, int number2, int weight)
+{
+  insertEdge(number1, number2, weight);
+
+  if (number1 == number2)
+    return;
+
+  insertEdge(number2, number1, weight);
+}
+
+void initVertex()
+{
+  addVertex(1, 2, 1);
+  addVertex(1, 3, 1);
+  addVertex(1, 4, 1);
+  addVertex(1, 6, 2);
+  addVertex(2, 3, 1);
+  addVertex(3, 5, 4);
+  addVertex(5, 5, 4);
+  addVertex(5, 6, 3);
 }
