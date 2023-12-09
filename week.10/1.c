@@ -51,7 +51,7 @@ typedef struct __Graph
   Edge *eHead;
 } Graph;
 
-int diffrentV(Edge *e, int name);
+int opposite(Edge *e, int name);
 // Vertex List 만들기
 Vertex *getVertex(int name);
 void insertVertex(Graph *graph, int name);
@@ -101,6 +101,8 @@ int main()
     else if (cmd == 'q')
       break;
   }
+
+  return 0;
 }
 
 Vertex *findVertex(Graph *graph, int name)
@@ -126,7 +128,7 @@ void print(Graph *graph, int name)
   while (inc)
   {
     Edge *e = inc->edge;
-    printf(" %d %d", diffrentV(e, name), e->weight);
+    printf(" %d %d", opposite(e, name), e->weight);
     inc = inc->next;
   }
   printf("\n");
@@ -192,7 +194,7 @@ Incidence *getIncidence(Edge *e)
   return incidence;
 }
 
-int diffrentV(Edge *e, int name)
+int opposite(Edge *e, int name)
 {
   return (e->v1 == name) ? e->v2 : e->v1;
 }
@@ -201,7 +203,7 @@ void insertIncidence(Vertex *v, Edge *e)
 {
   Incidence *newInc = getIncidence(e);
   Incidence *prevInc = v->iHead;
-  int incName = diffrentV(e, v->name);
+  int incName = opposite(e, v->name);
 
   if (prevInc == NULL)
   {
@@ -211,7 +213,7 @@ void insertIncidence(Vertex *v, Edge *e)
   {
     Edge *prevE = prevInc->edge;
     // 가장 처음에 들어가야 하는 경우
-    if (incName < diffrentV(prevE, v->name))
+    if (incName < opposite(prevE, v->name))
     {
       newInc->next = prevInc;
       v->iHead = newInc;
@@ -222,7 +224,7 @@ void insertIncidence(Vertex *v, Edge *e)
       while (prevInc->next)
       {
         prevE = prevInc->next->edge;
-        if (incName < diffrentV(prevE, v->name))
+        if (incName < opposite(prevE, v->name))
           break;
         prevInc = prevInc->next;
       }
