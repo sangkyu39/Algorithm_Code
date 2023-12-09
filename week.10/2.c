@@ -1,130 +1,87 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-typedef struct __Queue
-{
-  int arr[101];
-  int head, tail;
-} Queue;
 
-typedef struct __Edge
-{
-  int to;
-  struct __Edge *next;
-} Edge;
+int matrix[7][7];
 
-// 선언시 null로 초기화 됨
-int N, M;
-int in[100];
-char vertices[100];
-Edge *edges[100];
-Queue q;
+// Edge List 만들기
+void insertEdge(int w, int v1, int v2);
 
-// O(n) -> 최대 100번
-int getIndex(char ch)
-{
-  for (int i = 0; i < N; i++)
-  {
-    if (vertices[i] == ch)
-      return i;
-  }
-}
-
-Edge *getEdge(int to)
-{
-  Edge *ret = (Edge *)calloc(1, sizeof(Edge));
-  ret->to = to;
-  return ret;
-}
-
-// n < 100, m < 1000
-// isEmpty(), push(), pop() - Queue 사용시  사용 함수
-
-const int FAIL = -1, SUCCESS = 1e8;
-
-int qIsEmpty()
-{
-  if (q.head == q.tail)
-    return SUCCESS;
-  return FAIL;
-}
-
-int qPush(int elem)
-{
-  q.arr[q.tail] = elem;
-  q.tail = (q.tail + 1) % 101;
-
-  return SUCCESS;
-}
-
-int qPop()
-{
-  int ret = q.arr[q.head];
-  q.head = (q.head + 1) % 101;
-
-  return ret;
-}
+void updateEdge(int w, int v1, int v2);
+void print(int name);
+int isVertex(int name);
 
 int main()
 {
-  scanf("%d", &N);
-  getchar();
+  int info[8][3] = {{1, 1, 2}, {1, 1, 3}, {1, 1, 4}, {2, 1, 6}, {1, 2, 3}, {4, 3, 5}, {4, 5, 5}, {3, 5, 6}};
+  char cmd;
+  int name, w, v1, v2;
 
-  for (int i = 0; i < N; i++)
+  for (int i = 0; i < 8; i++)
   {
-    scanf("%c", vertices[i]);
-    getchar();
+    insertEdge(info[i][0], info[i][1], info[i][2]);
   }
 
-  scanf("%d", &M);
-  getchar();
-
-  char cfrom, cto;
-
-  // 1000 * 2  *  100 (시간복잡도) 1초 == 1억번
-  for (int i = 0, from, to; i < M; i++)
+  while (1)
   {
-    scanf("%c %c", &cfrom, &cto);
-    from = getIndex(cfrom);
-    to = getIndex(cto);
-
-    Edge *tmp = getEdge(to);
-    tmp->next = edges[from];
-    edges[from] = tmp;
-
-    in[to]++;
-  }
-
-  for (int i = 0; i < N; i++)
-  {
-    if (in[i] == 0)
-      qPush(i);
-  }
-  int output[100], outIdx = 0;
-
-  while (qIsEmpty() != SUCCESS)
-  {
-    int now = qPop();
-    output[outIdx++] = now;
-
-    Edge *cur = edges[now];
-    while (cur != NULL)
+    scanf("%c", &cmd);
+    if (cmd == 'a')
     {
-      in[cur->to]--;
-      if (in[cur->to] == 0)
-        qPush(cur->to);
-      cur = cur->next;
+      scanf("%d", &name);
+      print(name);
+    }
+    else if (cmd == 'm')
+    {
+      scanf("%d %d %d", &v1, &v2, &w);
+      updateEdge(w, v1, v2);
+    }
+    else if (cmd == 'q')
+      break;
+  }
+
+  return 0;
+}
+
+void insertEdge(int w, int v1, int v2)
+{
+  matrix[v1][v2] = w;
+  if (v1 != v2)
+    matrix[v2][v1] = w;
+}
+
+void print(int name)
+{
+  if (!isVertex(name))
+  {
+    printf("-1\n");
+    return;
+  }
+
+  for (int i = 0; i < 7; i++)
+  {
+    if (matrix[name][i] != 0)
+    {
+      printf("%d %d ", i, matrix[name][i]);
     }
   }
+  printf("\n");
+}
 
-  if (outIdx == N)
+int isVertex(int name)
+{
+  if (name <= 0 || name >= 7)
+    return 0;
+  return 1;
+}
+
+void updateEdge(int w, int v1, int v2)
+{
+  if (isVertex(v1) && isVertex(v2))
   {
-    for (int i = 0; i < N; i++)
-    {
-      printf(" %c", vertices[output[i]]);
-    }
+    matrix[v1][v2] = w;
+    if (v1 != v2)
+      matrix[v2][v1] = w;
   }
   else
-  {
-    puts("0");
-  }
+    printf("-1\n");
 }
