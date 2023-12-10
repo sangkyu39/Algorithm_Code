@@ -50,25 +50,6 @@ Incidence *getIncidence(Edge *e);
 
 void rDFS(Graph *graph, int name);
 
-void print(Graph *graph, int name)
-{
-  Vertex *v = findVertex(graph, name);
-
-  if (v == NULL)
-  {
-    printf("-1\n");
-    return;
-  }
-  Incidence *inc = v->iHead;
-  while (inc)
-  {
-    Edge *e = inc->edge;
-    printf(" %d %d", opposite(e, name));
-    inc = inc->next;
-  }
-  printf("\n");
-}
-
 int main()
 {
   Graph *graph = (Graph *)calloc(1, sizeof(Graph));
