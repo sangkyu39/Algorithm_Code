@@ -1,136 +1,123 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef struct __Edge
+typedef struct __Bucket
 {
-  int number;
-  int weight;
-  struct __Edge *next;
-} Edge;
+  int key;
+  struct __Bucket *next;
+} Bucket;
 
-typedef struct __Vertex
-{
-  Edge *edge;
-} Vertex;
+Bucket **bucketArr;
+int m;
 
-Vertex vertex[7];
-
-void addVertex(int number1, int number2, int weight);
-void insertEdge(int stand, int number, int weight);
-void initVertex();
-
-void print(int stand);
-void update(int number1, int number2, int weight);
-
-Edge *makeEdge(int number, int weight)
-{
-  Edge *edge = (Edge *)calloc(1, sizeof(Edge));
-  edge->number = number;
-  edge->weight = weight;
-  return edge;
-}
-
+Bucket *getBucket(int key);
+void printElement();
+void insertItem(int key);
+int findElement(int key);
+int removeElement(int key);
 int main()
 {
+  int key;
   char cmd;
-  int number, number1, number2, weight;
+  scanf("%d", &m);
+  getchar();
 
-  initVertex();
+  bucketArr = (Bucket **)calloc(m, sizeof(Bucket *));
 
   while (1)
   {
     scanf("%c", &cmd);
-    if (cmd == 'a')
-    {
-      scanf("%d", &number);
-      print(number);
-    }
-    else if (cmd == 'm')
-    {
-      scanf("%d %d %d", &number, &number1, &number2);
-      updateVertex(number1, number2, weight);
-    }
-    else if (cmd == 'q')
-    {
+    if (cmd == 'e')
       break;
-    }
-  }
-}
-
-void print(int stand)
-{
-  Edge *edge = vertex[stand].edge;
-
-  while (edge)
-  {
-    printf(" %d %d", edge->number, edge->weight);
-    edge = edge->next;
-  }
-  printf("\n");
-}
-void insertEdge(int stand, int number, int weight)
-{
-  Edge *edge = makeEdge(number, weight);
-
-  Edge *next = vertex[stand].edge;
-
-  while (next != NULL)
-  {
-    if (next->number >= number || next->next == NULL)
+    else if (cmd == 'p')
+      printElement();
+    else
     {
-      edge->next = next->next;
-      next->next = edge;
-      return;
+      scanf("%d", &key);
+      if (cmd == 'i')
+      {
+        insertItem(key);
+      }
+      else if (cmd == 's')
+      {
+        printf("%d\n", findElement(key));
+      }
+      else if (cmd == 'd')
+      {
+        printf("%d\n", removeElement(key));
+      }
     }
-    next = next->next;
+    getchar();
   }
-  edge->next = next;
-  vertex[stand].edge = edge;
+
+  return 0;
 }
 
-void updateEdge(int stand, int number, int weight)
+Bucket *getBucket(int key)
 {
-  Edge *next = vertex[stand].edge;
+  Bucket *bucket = (Bucket *)calloc(1, sizeof(Bucket));
+  bucket->key = key;
+  return bucket;
+}
 
-  while (next->next != NULL)
+int findElement(int key)
+{
+  int cnt = 1;
+  int v = key % m;
+  Bucket *bucket = bucketArr[v];
+  while (bucket)
   {
-    if (next->next->number == number)
-      break;
+    if (bucket->key == key)
+      return cnt;
+    bucket = bucket->next;
+    cnt++;
   }
-  if (next->number == number)
+  return 0;
+}
+
+void insertItem(int key)
+{
+  int v = key % m;
+  Bucket *bucket = getBucket(key);
+  bucket->next = bucketArr[v];
+  bucketArr[v] = bucket;
+  return;
+}
+
+int removeElement(int key)
+{
+  int v = key % m;
+  int cnt = 1;
+  Bucket *bucket = bucketArr[v];
+  Bucket *prev;
+  while (bucket)
   {
-    if (weight == 0)
+    if (bucket->key == key)
     {
-      next->next = next->next->next;
+      if (cnt == 1)
+        bucketArr[v] = bucket->next;
+      else
+        prev->next = bucket->next;
+      return cnt;
     }
-    next->weight = weight;
+    prev = bucket;
+    bucket = bucket->next;
+    cnt++;
   }
+  return 0;
 }
 
-void updateVertex(int number1, int number2, int weight)
+void printElement()
 {
-  updateEdge(number1, number2, weight);
-  updateEdge(number2, number1, weight);
-}
-
-void addVertex(int number1, int number2, int weight)
-{
-  insertEdge(number1, number2, weight);
-
-  if (number1 == number2)
-    return;
-
-  insertEdge(number2, number1, weight);
-}
-
-void initVertex()
-{
-  addVertex(1, 2, 1);
-  addVertex(1, 3, 1);
-  addVertex(1, 4, 1);
-  addVertex(1, 6, 2);
-  addVertex(2, 3, 1);
-  addVertex(3, 5, 4);
-  addVertex(5, 5, 4);
-  addVertex(5, 6, 3);
+  Bucket *bucket;
+  for (int i = 0; i < m; i++)
+  {
+    bucket = bucketArr[i];
+    while (bucket)
+    {
+      printf(" %d", bucket->key);
+      bucket = bucket->next;
+    }
+  }
+  return;
 }
