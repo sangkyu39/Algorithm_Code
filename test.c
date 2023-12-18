@@ -7,6 +7,7 @@ typedef struct __Node
   struct __Node *parent, *left, *right;
 } Node;
 
+Node *root;
 int isExternal(Node *node)
 {
   return !(node->left || node->right);
@@ -17,33 +18,31 @@ int isInternal(Node *node)
   return (node->left || node->right);
 }
 
-// insert Node
 Node *treeSearch(Node *node, int key);
-void insertItem(Node **root, int key);
+void insertItem(int key);
 void expandExternal(Node *node, int key);
-int findElement(Node *root, int key);
-// print Node
-void print(Node *root);
-void preOrder(Node *node);
+int findElement(int key);
 
-// remove Node
-int removeElement(Node **root, int key);
-Node *reduceExternal(Node **root, Node *child);
+void print();
+void preOrder();
+
+int removeElement(int key);
+Node *redeucExternal(Node *child);
 Node *inOrderSucc(Node *node);
 Node *findSibling(Node *node);
-void searchAndFixAfterRemoval(Node **root, Node *node);
 
-// AVL Tree
-void searchAndFixAfterInsertion(Node **root, Node *node);
+void searchAndFixAfterRemoval(Node *node);
+
+void searchAndFixAfterInsertion(Node *node);
 int updateHeight(Node *node);
 int isBalanced(Node *node);
-Node *findHighChild(Node *node);
 Node *restructure(Node *x, Node *y, Node *z);
-void setABC(Node *x, Node *y, Node *z, Node *subT[4], Node *ABC[3]);
+void setABC(Node *x, Node *y, Node *z, Node *ABC[3], Node *subT[4]);
 
 int main()
 {
-  Node *root = (Node *)calloc(1, sizeof(Node));
+  root = (Node *)calloc(1, sizeof(Node));
+
   char cmd;
   int key;
 
@@ -54,12 +53,12 @@ int main()
     if (cmd == 'i')
     {
       scanf("%d", &key);
-      insertItem(&root, key);
+      insertItem(key);
     }
     else if (cmd == 's')
     {
       scanf("%d", &key);
-      if (key == findElement(root, key))
+      if (key == findElement(key))
         printf("%d\n", key);
       else
         printf("X\n");
@@ -67,14 +66,14 @@ int main()
     else if (cmd == 'd')
     {
       scanf("%d", &key);
-      if (key == removeElement(&root, key))
+      if (key == removeElement(key))
         printf("%d\n", key);
       else
         printf("X\n");
     }
     else if (cmd == 'p')
     {
-      print(root);
+      print();
     }
     else if (cmd == 'q')
       break;
@@ -83,6 +82,29 @@ int main()
   return 0;
 }
 
+// print Node
+void print()
+{
+  preOrder(root);
+  printf("\n");
+}
+void preOrder(Node *node)
+{
+  if (isExternal(node))
+    return;
+  printf(" %d", node->key);
+  preOrder(node->left);
+  preOrder(node->right);
+}
+
+int findElement(int key)
+{
+  Node *node = treeSearch(root, key);
+  if (isExternal(node))
+    return key - 1;
+  else
+    return key;
+}
 Node *treeSearch(Node *node, int key)
 {
   if (isExternal(node))
@@ -91,26 +113,17 @@ Node *treeSearch(Node *node, int key)
     return node;
   else if (node->key < key)
     return treeSearch(node->right, key);
-  else if (node->key > key)
+  else
     return treeSearch(node->left, key);
 }
 
-int findElement(Node *root, int key)
+void insertItem(int key)
 {
   Node *node = treeSearch(root, key);
-  if (isExternal(node))
-    return key - 1;
-  else
-    return key;
-}
-
-void insertItem(Node **root, int key)
-{
-  Node *node = treeSearch(*root, key);
   if (isInternal(node))
     return;
   expandExternal(node, key);
-  searchAndFixAfterInsertion(root, node);
+  searchAndFixAfterInsertion(node);
 }
 
 void expandExternal(Node *node, int key)
@@ -123,12 +136,11 @@ void expandExternal(Node *node, int key)
   node->right->parent = node;
 }
 
-void searchAndFixAfterInsertion(Node **root, Node *node)
+void searchAndFixAfterInsertion(Node *node)
 {
   if (node->parent == NULL)
     return;
-  Node *x = NULL, *y = NULL;
-  Node *z = node->parent;
+  Node *z = node->parent, *y, *x;
 
   while (updateHeight(z) && isBalanced(z))
   {
@@ -137,47 +149,17 @@ void searchAndFixAfterInsertion(Node **root, Node *node)
     z = z->parent;
   }
 
-  // 정상적으로 균형잡혀있는 경우
   if (isBalanced(z))
+  {
     return;
-  // 왼쪽 자식의 높이가 더 큰 경우
+  }
 
-  if (z->left->height > z->right->height)
-    y = z->left;
-  // 오른쪽 자식의 높이가 더 큰 경우
-  else
-    y = z->right;
+  y = (z->left->height > z->right->height) ? z->left : z->right;
+  x = (y->left->height > y->right->height) ? y->left : y->right;
 
-  // 왼쪽 자식의 높이가 더 큰 경우
-  if (y->left->height > y->right->height)
-    x = y->left;
-  else
-    // 오른쪽 자식의 높이가 더 큰 경우
-    x = y->right;
-  /*
-  z - 불균형인 두 자식 노드의 부모 노드
-  y - 두 자식 노드 중 더 커서 불균형인 노드
-  x - 불균형의 원인이 되는 노드의 부모 노드
-  z -> y -> x 순서로 자식노드로 내려감 */
   Node *mid = restructure(x, y, z);
   if (mid->parent == NULL)
-    *root = mid;
-  return;
-}
-
-int updateHeight(Node *node)
-{
-  int leftH = node->left->height;
-  int rightH = node->right->height;
-
-  int newHeight = (leftH > rightH) ? leftH + 1 : rightH + 1;
-  if (newHeight != node->height)
-  {
-    node->height = newHeight;
-    return 1;
-  }
-  else
-    return 0;
+    root = mid;
 }
 
 int isBalanced(Node *node)
@@ -187,6 +169,22 @@ int isBalanced(Node *node)
     return 1;
   else
     return 0;
+}
+
+int updateHeight(Node *node)
+{
+  int leftH = node->left->height;
+  int rightH = node->right->height;
+  int newH = (leftH > rightH) ? leftH + 1 : rightH + 1;
+  if (newH != node->height)
+  {
+    node->height = newH;
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 Node *restructure(Node *x, Node *y, Node *z)
@@ -270,119 +268,100 @@ void setABC(Node *x, Node *y, Node *z, Node *subT[4], Node *ABC[3])
   }
 }
 
-// print Node
-void print(Node *root)
+int removeElement(int key)
 {
-  preOrder(root);
-  printf("\n");
-}
-void preOrder(Node *node)
-{
-  if (isExternal(node))
-    return;
-  printf(" %d", node->key);
-  preOrder(node->left);
-  preOrder(node->right);
-}
-
-int removeElement(Node **root, int key)
-{
-  Node *node = treeSearch(*root, key);
-
+  Node *node = treeSearch(root, key);
   if (isExternal(node))
     return key - 1;
-
   Node *child = node->left;
-  Node *sibling;
-
+  Node *sChild;
   if (isInternal(child))
     child = node->right;
   if (isExternal(child))
-    sibling = reduceExternal(root, child);
+    sChild = redeucExternal(child);
   else
   {
-    Node *y = inOrderSucc(node);
-    child = y->left;
-    node->key = y->key;
-    sibling = reduceExternal(root, child);
+    Node *new = inOrderSucc(node);
+    node->key = new->key;
+    child = new->left;
+    sChild = redeucExternal(new);
   }
-  searchAndFixAfterRemoval(root, sibling->parent);
+  searchAndFixAfterRemoval(sChild);
   return key;
-}
-
-Node *reduceExternal(Node **root, Node *child)
-{
-  Node *parent = child->parent;
-  Node *sibling = findSibling(child);
-  if (parent->parent == NULL)
-  {
-    *root = sibling;
-    if (sibling)
-      sibling->parent = NULL;
-  }
-  else
-  {
-    sibling->parent = parent->parent;
-    if (parent->parent->left == parent)
-      parent->parent->left = sibling;
-    else
-      parent->parent->right = sibling;
-  }
-  return sibling;
 }
 
 Node *inOrderSucc(Node *node)
 {
   node = node->right;
   while (isInternal(node->left))
+  {
     node = node->left;
+  }
   return node;
 }
 
 Node *findSibling(Node *node)
 {
-  if (node->parent == NULL)
+  if (node == root)
+  {
     return NULL;
-  if (node->parent->left == node)
-    return node->parent->right;
+  }
   else
-    return node->parent->left;
+  {
+    return (node->parent->left == node) ? node->parent->right : node->parent->left;
+  }
 }
 
-void searchAndFixAfterRemoval(Node **root, Node *node)
+Node *redeucExternal(Node *child)
 {
-  if (node == NULL)
-    return;
-  Node *x, *y, *z = node;
+  Node *parent = child->parent;
+  Node *sChild = findSibling(child);
+  if (parent == root)
+  {
+    root = sChild;
+    if (sChild)
+      sChild->parent = NULL;
+  }
+  else
+  {
+    sChild->parent = parent->parent;
+    if (parent = parent->parent->left)
+    {
+      parent->parent->left = sChild;
+    }
+    else
+    {
+      parent->parent->right = sChild;
+    }
+  }
+}
 
+void searchAndFixAfterRemoval(Node *node)
+{
+  if (node == root)
+    return;
+  Node *z = node->parent;
   while (updateHeight(z) && isBalanced(z))
   {
     if (z->parent == NULL)
+    {
       return;
+    }
     z = z->parent;
   }
 
   if (isBalanced(z))
+  {
     return;
-  if (z->left->height > z->right->height)
-    y = z->left;
-  else
-    y = z->right;
+  }
+  Node *y, *x;
 
-  if (y->left->height > y->right->height)
-    x = y->left;
-  else if (y->left->height < y->right->height)
-    x = y->right;
-  else if (z->left == y)
-    x = y->left;
-  else
-    x = y->right;
+  y = (z->left->height > z->right->height) ? z->left : z->right;
+  x = (y->left->height > y->right->height) ? y->left : y->right;
 
   Node *mid = restructure(x, y, z);
   if (mid->parent == NULL)
-  {
-    *root = mid;
-    return;
-  }
-  searchAndFixAfterRemoval(root, mid->parent);
+    root = mid;
+  else
+    searchAndFixAfterRemoval(mid);
 }
